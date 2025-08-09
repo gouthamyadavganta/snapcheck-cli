@@ -25,20 +25,35 @@ Before starting, make sure you have:
 
 ## 2️⃣ Install SnapCheck
 
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+The easiest way to install SnapCheck is via [pipx](https://pipx.pypa.io/), which installs it in an isolated environment and makes it available system-wide.
 
-# Install dependencies
-pip install -r requirements.txt
+```bash
+pip install --user pipx   # if you don’t already have pipx
+pipx ensurepath           # make sure pipx bin directory is in PATH
+pipx install snapcheck-cli
+snapcheck --help
+Windows users:
+If snapcheck is not recognized after install, close and reopen your terminal, or run:
+
+powershell
+
+pipx ensurepath
+Upgrading SnapCheck
+
+
+pipx upgrade snapcheck-cli
+Uninstalling SnapCheck
+
+
+pipx uninstall snapcheck-cli
+For Contributors (install from source)
+If you want to work on SnapCheck itself, see the “From Source” section in the main README.md.
+
 3️⃣ Create a Profile
 Profiles define what SnapCheck audits and where it connects.
 
 Quickstart Profile
-bash
-Copy
-Edit
+
 snapcheck init-profile --init-name prod \
     --init-output profiles/prod.yaml \
     --quickstart
@@ -54,40 +69,33 @@ Placeholders for your credentials
 Edit profiles/prod.yaml and update the relevant fields.
 We recommend using environment variables instead of hardcoding secrets.
 
-bash
-Copy
-Edit
+
 export AWS_ACCESS_KEY_ID=...
 export AWS_SECRET_ACCESS_KEY=...
 export GITHUB_TOKEN=...
 export ARGOCD_TOKEN=...
 export SNAPCHECK_PROFILE=profiles/prod.yaml
+
 5️⃣ Run Your First Audit
-bash
-Copy
-Edit
+
 snapcheck run audit --modules all --output terminal
 Example output:
 
-bash
-Copy
-Edit
+
 🚀 SnapCheck Audit Complete — 18 findings, 4 critical
 Terraform: 2 drifted resources
 Kubernetes: 1 CrashLoopBackOff pod
 AWS Cost: +22% this month
+
 6️⃣ View Reports
+
 HTML Dashboard
-bash
-Copy
-Edit
+
 snapcheck serve
 Then open http://127.0.0.1:8000 in your browser.
 
 Markdown Report
-bash
-Copy
-Edit
+
 snapcheck run audit --output markdown > report.md
 7️⃣ Understanding the Results
 SnapCheck organizes results by plugin:

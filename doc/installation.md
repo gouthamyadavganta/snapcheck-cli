@@ -1,11 +1,10 @@
 Installing SnapCheck
+
 SnapCheck is distributed via PyPI and can be installed globally in a single command using pipx (recommended).
 This ensures SnapCheck runs as a global CLI without messing with your Python environments.
 
 Quick Install (Recommended)
-bash
-Copy
-Edit
+
 # Install pipx if you don’t have it
 python -m pip install --user pipx
 pipx ensurepath

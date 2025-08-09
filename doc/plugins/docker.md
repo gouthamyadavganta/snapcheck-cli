@@ -29,9 +29,7 @@ export DOCKER_PASSWORD=yourpassword
 # or for GHCR:
 export GITHUB_TOKEN=ghp_...
 Profile Configuration
-yaml
-Copy
-Edit
+
 modules:
   - docker
 
@@ -93,9 +91,8 @@ CVSS 7.0–8.9: high
 CVSS 4.0–6.9: medium
 
 Output Schema
-json
-Copy
-Edit
+
+
 {
   "plugin": "docker",
   "status": "high",
@@ -110,19 +107,13 @@ Edit
 }
 Example Findings
 Missing Tag
-csharp
-Copy
-Edit
+c
 [HIGH][docker] Image yourorg/yourimage is missing tag 'prod'
 Outdated Image
-css
-Copy
-Edit
+
 [HIGH][docker] Image yourorg/yourimage:prod last updated 400 days ago
 Critical CVE
-css
-Copy
-Edit
+
 [CRITICAL][docker] Image ghcr.io/yourorg/api-service:latest contains CVE-2023-12345 (CVSS 9.8)
 Execution Flow
 Authenticate to registry if credentials provided.
@@ -160,14 +151,10 @@ Rate limit exceeded	Excessive unauthenticated requests	Authenticate to registry
 
 Examples
 Audit Public Docker Hub Image
-bash
-Copy
-Edit
+
 snapcheck run audit --modules docker --profile profiles/prod.yaml
 Audit Private GHCR Image with CVE Scan
-yaml
-Copy
-Edit
+
 docker:
   images:
     - name: ghcr.io/yourorg/api-service
@@ -176,9 +163,7 @@ docker:
     cve_lookup: true
   cve:
     provider: osv
-bash
-Copy
-Edit
+
 export GITHUB_TOKEN=ghp_...
 Related Docs
 CLI: snapcheck run

@@ -74,10 +74,41 @@ When something goes wrong, finding the *root cause* often means **hours of conte
 ## 📦 Quick Start
 
 ```bash
-# 0. Install (Python 3.9+)
+## Install
+
+### Recommended (pipx)
+Requires Python 3.9+
+```bash
+pipx install snapcheck-cli
+snapcheck --help
+
+Upgrade
+
+pipx upgrade snapcheck-cli
+
+Uninstall
+
+pipx uninstall snapcheck-cli
+Windows note: If snapcheck isn’t found after install:
+
+powershell
+
+pipx ensurepath
+then restart your terminal.
+
+From source (for contributors)
+
+git clone https://github.com/<your-org>/snapcheck.git
+cd snapcheck
 python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# Windows:
+.\venv\Scripts\activate
+# macOS/Linux:
+# source venv/bin/activate
+pip install -e .
+snapcheck --help
+
+---
 
 # 1. Create a profile
 snapcheck init-profile --init-name prod --init-output profiles/prod.yaml --quickstart
@@ -94,20 +125,27 @@ export AWS_ACCESS_KEY_ID=...
 export AWS_SECRET_ACCESS_KEY=...
 export ARGOCD_TOKEN=...
 
+---
+
 # 3. Run audit
 snapcheck run audit --modules all --output terminal
 
+---
+
 # 4. Serve dashboard
 snapcheck serve --no-reload
+
+---
+
 📊 Example Audit Output
-bash
-Copy
-Edit
+
 🚀 SnapCheck Audit Complete — 24 findings, 6 critical
 Terraform: 3 drifted resources (S3 bucket public, IAM wildcard policy)
 Kubernetes: 2 pods CrashLoopBackOff
 AWS Cost: +45% this month (EC2 spike)
 HTML Report:
+
+---
 
 🔐 Security & Compliance
 Authentication: GitHub OAuth2 (scopes: read:user, user:email, read:org if org allowlist).
@@ -124,6 +162,8 @@ Audit Logging: Pluggable backends (file/SQLite/S3) for access events.
 
 Full details: docs/security.md
 
+---
+
 📚 Documentation
 Getting Started
 
@@ -139,6 +179,8 @@ Security
 
 FAQ
 
+---
+
 💡 Why Teams Use SnapCheck
 Engineering: Faster root cause analysis across tool boundaries.
 
@@ -148,9 +190,14 @@ Security: Early detection of leaks, public exposures, and stale secrets.
 
 Leadership: Visibility into risk, cost anomalies, and trend regressions.
 
+---
+
 🤝 Contributing
 We welcome issues, PRs, and discussions.
 See docs/developer/contributing.md for details.
 
+---
+
 📜 License
 MIT License — see LICENSE for details.
+

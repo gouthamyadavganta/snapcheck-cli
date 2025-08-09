@@ -41,9 +41,7 @@ pipx install snapcheck-cli
 snapcheck version
 
 Q: How do I create my first profile?
-bash
-Copy
-Edit
+
 snapcheck init-profile --init-name prod --init-output profiles/prod.yaml --quickstart
 Edit the generated YAML to include your AWS, GitHub, Docker, and ArgoCD details.
 See Profile Reference.
@@ -54,26 +52,22 @@ Recommended: profiles/ folder in the repo, versioned with infra code.
 Do not commit secrets. Use environment variables or Vault.
 
 Running Audits
+
 Q: How do I run an audit?
-bash
-Copy
-Edit
+
 snapcheck run audit --profile profiles/prod.yaml --modules all --output terminal
 Artifacts: .snapcheck/report.html + .snapcheck/history/.
 
 Q: How do I run only some modules?
-bash
-Copy
-Edit
+
 snapcheck run audit --profile profiles/prod.yaml --modules terraform,kubernetes,secrets
 Q: Can I test SnapCheck without real credentials?
 Yes – set demo_mode: true in your profile. All modules will return synthetic data.
 
 Web Dashboard
+
 Q: How do I start the SnapCheck web dashboard?
-bash
-Copy
-Edit
+
 snapcheck serve
 Login at http://127.0.0.1:8000/login (requires GitHub OAuth client ID/secret in env).
 
@@ -87,9 +81,6 @@ Set https_only: true in security.session when behind TLS.
 Q: Can I share a report without giving dashboard access?
 Yes:
 
-bash
-Copy
-Edit
 snapcheck share --profile profiles/prod.yaml --ttl 3600
 Generates a signed, expiring view-only URL.
 
@@ -152,6 +143,4 @@ Security Model
 
 CLI Commands
 
-pgsql
-Copy
-Edit
+

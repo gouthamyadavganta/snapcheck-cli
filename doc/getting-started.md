@@ -30,21 +30,15 @@ pipx install snapcheck-cli
 snapcheck version
 Upgrading
 
-bash
-Copy
-Edit
 pipx upgrade snapcheck-cli
 Uninstalling
 
-bash
-Copy
-Edit
+
 pipx uninstall snapcheck-cli
 Windows note: If snapcheck is not recognized after install, close and reopen your terminal or run:
 
 powershell
-Copy
-Edit
+
 pipx ensurepath
 
 2. Initialize a Profile
@@ -58,9 +52,7 @@ Security and RBAC settings
 
 Environment-specific configuration
 
-bash
-Copy
-Edit
+
 snapcheck init-profile \
   --init-name prod \
   --init-output profiles/prod.yaml \
@@ -70,8 +62,7 @@ You can later edit profiles/prod.yaml to customize modules and RBAC.
 
 Example Minimal Profile
 yaml
-Copy
-Edit
+
 name: prod
 aws_region: us-east-1
 
@@ -111,9 +102,7 @@ demo_mode: false
 3. Set Environment Variables
 Export credentials and profile location in your current shell:
 
-bash
-Copy
-Edit
+
 export SNAPCHECK_PROFILE=profiles/prod.yaml
 export SNAPCHECK_OAUTH_CLIENT_ID=your_github_oauth_client_id
 export SNAPCHECK_OAUTH_CLIENT_SECRET=your_github_oauth_client_secret
@@ -129,9 +118,7 @@ export ARGOCD_TOKEN=...
 Tip: Store these in a secure secrets manager (e.g., Vault, AWS Secrets Manager) and load them into your shell before running SnapCheck.
 
 4. Run an Audit
-bash
-Copy
-Edit
+
 snapcheck run audit \
   --profile profiles/prod.yaml \
   --modules all \
@@ -145,9 +132,7 @@ Artifacts generated:
 .snapcheck/history/ — Timestamped run history for diffs and regressions
 
 5. Serve the Dashboard Locally
-bash
-Copy
-Edit
+
 snapcheck serve --no-reload
 Visit: http://127.0.0.1:8000/login
 

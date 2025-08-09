@@ -39,10 +39,10 @@
 
 ## 🛠 Quick Start
 
+## Install
 ```bash
-# Install
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
+pipx install snapcheck-cli
+snapcheck --help
 
 # Create profile
 snapcheck init-profile --init-name prod --init-output profiles/prod.yaml --quickstart

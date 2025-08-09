@@ -23,3 +23,11 @@ profiles/*.yaml
 # System
 .DS_Store
 Thumbs.db
+# SnapCheck extras
+gh-pages-temp/
+reports/
+audit_*.md
+profiles_backup/
+profiles/*.yaml
+!profiles/example*.yaml
+state.tfstate
