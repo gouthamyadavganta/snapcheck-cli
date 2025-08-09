@@ -1,0 +1,640 @@
+
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SnapCheck Audit Report</title>
+
+  <!-- Favicon & Brand stylesheet (use RELATIVE paths so file:// works) -->
+  <link rel="icon" href="static/logo.png" />
+  <link rel="stylesheet" href="static/brand.css" />
+
+  <style>
+    :root { color-scheme: light dark; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: #f7f7f7; color: #111;
+    }
+    .dark body { background: #0b0b0b; color: #eaeaea; }
+
+    /* Header & footer */
+    .sc-header { background: var(--brand-black); color: #fff; border-bottom: 1px solid var(--brand-olive); }
+    .sc-footer { background: #0f0f0f; color: #bdbdbd; border-top: 1px solid #262626; }
+
+    /* Layout */
+    .sc-container { max-width: 1120px; margin: 0 auto; padding: 14px 16px; }
+
+    /* Logo */
+    .sc-logo { display: inline-block; height: 56px; width: auto; vertical-align: middle; border-radius: 8px; }
+
+    /* Header layout */
+    .sc-header .sc-container {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      min-height: 64px;
+    }
+    .sc-header .left { display: flex; align-items: center; gap: 14px; }
+    .sc-header .right { display: flex; align-items: center; gap: 8px; }
+    .sc-btn-primary { line-height: 1; padding: 8px 12px; }
+
+    /* Responsive tweaks */
+    @media (max-width: 640px) {
+      .sc-logo { height: 42px; }
+      .sc-header .sc-container { padding: 10px 12px; }
+    }
+
+    /* Print cleanup */
+    @media print {
+      .sc-header, .sc-footer, [data-action="toggle"], #toggleTheme { display: none !important; }
+      body { background: #fff !important; color: #000 !important; }
+      .sc-card { break-inside: avoid; border-color: #ccc !important; }
+      .sc-kpi { box-shadow: none !important; }
+      canvas { max-height: 200px !important; }
+      a { color: #000 !important; text-decoration: none; }
+    }
+  </style>
+
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body class="h-full">
+
+  <!-- Header (uses top-level brand_* or summary.brand_*; falls back to defaults) -->
+  <header class="sc-header">
+    <div class="sc-container">
+      <div class="left">
+        
+        <img src="static/logo.png" alt="SnapCheck" class="sc-logo" />
+
+        <div>
+          <div style="font-weight:600;">
+            SnapCheck Report
+            
+            
+              <span class="ml-2 text-xs px-2 py-1 rounded bg-yellow-400 text-black">DEMO</span>
+            
+          </div>
+          
+            <div style="font-size:12px; opacity:.7;">Audit: 2025-08-08 01:19:09</div>
+          
+        </div>
+      </div>
+
+      <div class="right">
+        
+  <button onclick="window.print()" class="sc-btn-primary">Export PDF</button>
+  <a href="#" class="sc-btn-primary">Export JSON</a>
+  <button class="sc-btn-primary" id="toggleTheme">Toggle Theme</button>
+
+      </div>
+    </div>
+  </header>
+
+  <main class="sc-container">
+    
+  <div class="grid grid-cols-12 gap-4">
+    <!-- Sidebar -->
+    <aside class="col-span-12 md:col-span-3 lg:col-span-3 space-y-4">
+      <input id="search"
+             class="w-full rounded-xl border p-2 bg-white dark:bg-zinc-900"
+             placeholder="Search findings…" />
+
+      <div>
+        <div class="text-xs uppercase opacity-60 mb-2">Severity</div>
+        <div class="flex flex-wrap gap-2">
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="severity-filter" value="FAIL" checked> FAIL
+          </label>
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="severity-filter" value="WARN" checked> WARN
+          </label>
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="severity-filter" value="PASS" checked> PASS
+          </label>
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="severity-filter" value="INFO" checked> INFO
+          </label>
+          
+        </div>
+      </div>
+
+      <div>
+        <div class="text-xs uppercase opacity-60 mb-2">Plugins</div>
+        <div class="grid grid-cols-2 gap-2" id="pluginFilterList">
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="plugin-filter" value="terraform" checked> Terraform
+          </label>
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="plugin-filter" value="kubernetes" checked> Kubernetes
+          </label>
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="plugin-filter" value="helm" checked> Helm
+          </label>
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="plugin-filter" value="ci_cd" checked> Ci Cd
+          </label>
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="plugin-filter" value="docker" checked> Docker
+          </label>
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="plugin-filter" value="secrets" checked> Secrets
+          </label>
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="plugin-filter" value="cost" checked> Cost
+          </label>
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="plugin-filter" value="gitops" checked> Gitops
+          </label>
+          
+          
+          <label class="text-sm flex items-center gap-1">
+            <input type="checkbox" class="plugin-filter" value="correlation" checked> Correlation
+          </label>
+          
+        </div>
+      </div>
+
+      <div class="text-xs uppercase opacity-60 mb-2">GPT Summary</div>
+      <div class="text-sm rounded-xl border p-3 bg-white dark:bg-zinc-900 whitespace-pre-wrap">
+        Demo summary: No critical issues. Minor Helm update available. Watch pod restarts in monitoring.
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <section class="col-span-12 md:col-span-9 lg:col-span-9">
+      <!-- KPI strip (precomputed in html_report.py) -->
+      <div class="grid sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-4">
+        
+        <button class="sc-kpi rounded-2xl shadow p-3 text-left bg-white dark:bg-zinc-900 transition hover:shadow-lg hover:scale-[1.02]"
+                data-kpi="pass" data-scroll-to="kubernetes">
+          <div class="text-xs opacity-70">Passed Checks</div>
+          <div class="text-2xl font-semibold">8</div>
+        </button>
+        
+        <button class="sc-kpi rounded-2xl shadow p-3 text-left bg-white dark:bg-zinc-900 transition hover:shadow-lg hover:scale-[1.02]"
+                data-kpi="fail" data-scroll-to="terraform">
+          <div class="text-xs opacity-70">Failed Checks</div>
+          <div class="text-2xl font-semibold">0</div>
+        </button>
+        
+        <button class="sc-kpi rounded-2xl shadow p-3 text-left bg-white dark:bg-zinc-900 transition hover:shadow-lg hover:scale-[1.02]"
+                data-kpi="regressions" data-scroll-to="correlation">
+          <div class="text-xs opacity-70">Regressions</div>
+          <div class="text-2xl font-semibold">0</div>
+        </button>
+        
+        <button class="sc-kpi rounded-2xl shadow p-3 text-left bg-white dark:bg-zinc-900 transition hover:shadow-lg hover:scale-[1.02]"
+                data-kpi="cost" data-scroll-to="cost">
+          <div class="text-xs opacity-70">Monthly Cost</div>
+          <div class="text-2xl font-semibold">$530</div>
+        </button>
+        
+        <button class="sc-kpi rounded-2xl shadow p-3 text-left bg-white dark:bg-zinc-900 transition hover:shadow-lg hover:scale-[1.02]"
+                data-kpi="drift" data-scroll-to="correlation">
+          <div class="text-xs opacity-70">Drifted Items</div>
+          <div class="text-2xl font-semibold">0</div>
+        </button>
+        
+        <button class="sc-kpi rounded-2xl shadow p-3 text-left bg-white dark:bg-zinc-900 transition hover:shadow-lg hover:scale-[1.02]"
+                data-kpi="deploy" data-scroll-to="ci_cd">
+          <div class="text-xs opacity-70">Last Deploy</div>
+          <div class="text-2xl font-semibold">—</div>
+        </button>
+        
+      </div>
+
+      <!-- Global Charts (renders if charts.cost exists) -->
+      <section class="sc-card rounded-2xl shadow p-4 mb-4 bg-white dark:bg-zinc-900">
+        <h3 class="text-lg font-semibold mb-2">Global Charts</h3>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="h-48">
+            <canvas id="chart-cost" height="160"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Correlation (normalized) -->
+      
+      
+      <section class="sc-card rounded-2xl shadow p-4 mb-4 bg-white dark:bg-zinc-900"
+               data-plugin="correlation" data-status="INFO">
+        <header class="flex items-center justify-between mb-3">
+          <div class="text-lg font-semibold">Correlation</div>
+          <button class="underline text-sm" data-action="toggle">Collapse</button>
+        </header>
+        <div class="space-y-2" data-body>
+          
+          <article class="finding border rounded-xl p-3" data-severity="INFO">
+            <div class="flex items-center justify-between">
+              <strong class="text-sm">Correlation</strong>
+              <span class="sc-pill sc-pill--INFO">INFO</span>
+            </div>
+            <p class="text-sm mt-1 whitespace-pre-wrap">{&#39;title&#39;: &#39;Root Cause Correlation&#39;, &#39;status&#39;: &#39;✅ OK&#39;, &#39;messages&#39;: [&#39;Potential link: image size growth ↔ longer build times.&#39;, &#39;No incident linkage detected in last 24h.&#39;]}</p>
+            
+          </article>
+          
+        </div>
+      </section>
+      
+
+      <!-- Plugin cards (normalized) -->
+      
+      <section class="sc-card rounded-2xl shadow p-4 mb-4 bg-white dark:bg-zinc-900"
+               data-plugin="terraform" data-status="INFO">
+        <header class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-semibold">Terraform</span>
+            <span class="sc-pill sc-pill--INFO">INFO</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <button class="underline" data-action="toggle">Collapse</button>
+          </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-4" data-body>
+          <div class="md:col-span-2 space-y-2">
+            
+            <article class="finding border rounded-xl p-3" data-severity="INFO">
+              <div class="flex items-center justify-between">
+                <strong class="text-sm">Terraform</strong>
+                <span class="sc-pill sc-pill--INFO">INFO</span>
+              </div>
+              <p class="text-sm mt-1 whitespace-pre-wrap">{&#39;title&#39;: &#39;Terraform&#39;, &#39;status&#39;: &#39;✅ OK&#39;, &#39;messages&#39;: [&#39;No drift detected in last snapshot.&#39;, &#39;State age: 2 days.&#39;]}</p>
+              
+            </article>
+            
+          </div>
+
+          <aside class="space-y-3">
+            <div class="h-40">
+              <canvas id="chart-terraform" height="160" class="rounded-xl border"></canvas>
+            </div>
+            <ul class="text-sm space-y-1">
+              <li class="flex justify-between">
+                <span class="opacity-70">Findings</span>
+                <span>1</span>
+              </li>
+              <li class="flex justify-between">
+                <span class="opacity-70">Status</span>
+                <span>INFO</span>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+      
+      <section class="sc-card rounded-2xl shadow p-4 mb-4 bg-white dark:bg-zinc-900"
+               data-plugin="kubernetes" data-status="INFO">
+        <header class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-semibold">Kubernetes</span>
+            <span class="sc-pill sc-pill--INFO">INFO</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <button class="underline" data-action="toggle">Collapse</button>
+          </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-4" data-body>
+          <div class="md:col-span-2 space-y-2">
+            
+            <article class="finding border rounded-xl p-3" data-severity="INFO">
+              <div class="flex items-center justify-between">
+                <strong class="text-sm">Kubernetes</strong>
+                <span class="sc-pill sc-pill--INFO">INFO</span>
+              </div>
+              <p class="text-sm mt-1 whitespace-pre-wrap">{&#39;title&#39;: &#39;Kubernetes&#39;, &#39;status&#39;: &#39;🟡 Warning&#39;, &#39;messages&#39;: [&#39;2 pods restarting (CrashLoopBackOff) in monitoring namespace.&#39;, &#39;Node pressure: none. DNS: OK.&#39;]}</p>
+              
+            </article>
+            
+          </div>
+
+          <aside class="space-y-3">
+            <div class="h-40">
+              <canvas id="chart-kubernetes" height="160" class="rounded-xl border"></canvas>
+            </div>
+            <ul class="text-sm space-y-1">
+              <li class="flex justify-between">
+                <span class="opacity-70">Findings</span>
+                <span>1</span>
+              </li>
+              <li class="flex justify-between">
+                <span class="opacity-70">Status</span>
+                <span>INFO</span>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+      
+      <section class="sc-card rounded-2xl shadow p-4 mb-4 bg-white dark:bg-zinc-900"
+               data-plugin="helm" data-status="INFO">
+        <header class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-semibold">Helm</span>
+            <span class="sc-pill sc-pill--INFO">INFO</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <button class="underline" data-action="toggle">Collapse</button>
+          </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-4" data-body>
+          <div class="md:col-span-2 space-y-2">
+            
+            <article class="finding border rounded-xl p-3" data-severity="INFO">
+              <div class="flex items-center justify-between">
+                <strong class="text-sm">Helm</strong>
+                <span class="sc-pill sc-pill--INFO">INFO</span>
+              </div>
+              <p class="text-sm mt-1 whitespace-pre-wrap">{&#39;title&#39;: &#39;Helm&#39;, &#39;status&#39;: &#39;✅ OK&#39;, &#39;messages&#39;: [&#39;All releases healthy. 1 chart outdated (minor).&#39;], &#39;metadata&#39;: {&#39;outdated&#39;: [{&#39;name&#39;: &#39;prometheus&#39;, &#39;current&#39;: &#39;19.6.0&#39;, &#39;latest&#39;: &#39;19.7.1&#39;}]}}</p>
+              
+            </article>
+            
+          </div>
+
+          <aside class="space-y-3">
+            <div class="h-40">
+              <canvas id="chart-helm" height="160" class="rounded-xl border"></canvas>
+            </div>
+            <ul class="text-sm space-y-1">
+              <li class="flex justify-between">
+                <span class="opacity-70">Findings</span>
+                <span>1</span>
+              </li>
+              <li class="flex justify-between">
+                <span class="opacity-70">Status</span>
+                <span>INFO</span>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+      
+      <section class="sc-card rounded-2xl shadow p-4 mb-4 bg-white dark:bg-zinc-900"
+               data-plugin="ci_cd" data-status="INFO">
+        <header class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-semibold">Ci Cd</span>
+            <span class="sc-pill sc-pill--INFO">INFO</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <button class="underline" data-action="toggle">Collapse</button>
+          </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-4" data-body>
+          <div class="md:col-span-2 space-y-2">
+            
+            <article class="finding border rounded-xl p-3" data-severity="INFO">
+              <div class="flex items-center justify-between">
+                <strong class="text-sm">Ci Cd</strong>
+                <span class="sc-pill sc-pill--INFO">INFO</span>
+              </div>
+              <p class="text-sm mt-1 whitespace-pre-wrap">{&#39;title&#39;: &#39;CI/CD&#39;, &#39;status&#39;: &#39;✅ OK&#39;, &#39;messages&#39;: [&#39;Avg durations — Build: 22s, Test: 41s, Deploy: 19s.&#39;, &#39;Branch protection: enabled on main.&#39;]}</p>
+              
+            </article>
+            
+          </div>
+
+          <aside class="space-y-3">
+            <div class="h-40">
+              <canvas id="chart-ci_cd" height="160" class="rounded-xl border"></canvas>
+            </div>
+            <ul class="text-sm space-y-1">
+              <li class="flex justify-between">
+                <span class="opacity-70">Findings</span>
+                <span>1</span>
+              </li>
+              <li class="flex justify-between">
+                <span class="opacity-70">Status</span>
+                <span>INFO</span>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+      
+      <section class="sc-card rounded-2xl shadow p-4 mb-4 bg-white dark:bg-zinc-900"
+               data-plugin="docker" data-status="INFO">
+        <header class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-semibold">Docker</span>
+            <span class="sc-pill sc-pill--INFO">INFO</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <button class="underline" data-action="toggle">Collapse</button>
+          </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-4" data-body>
+          <div class="md:col-span-2 space-y-2">
+            
+            <article class="finding border rounded-xl p-3" data-severity="INFO">
+              <div class="flex items-center justify-between">
+                <strong class="text-sm">Docker</strong>
+                <span class="sc-pill sc-pill--INFO">INFO</span>
+              </div>
+              <p class="text-sm mt-1 whitespace-pre-wrap">{&#39;title&#39;: &#39;Docker&#39;, &#39;status&#39;: &#39;✅ OK&#39;, &#39;messages&#39;: [&#39;2 images scanned via registry API. No critical CVEs.&#39;, &#39;Largest image: 412 MB.&#39;]}</p>
+              
+            </article>
+            
+          </div>
+
+          <aside class="space-y-3">
+            <div class="h-40">
+              <canvas id="chart-docker" height="160" class="rounded-xl border"></canvas>
+            </div>
+            <ul class="text-sm space-y-1">
+              <li class="flex justify-between">
+                <span class="opacity-70">Findings</span>
+                <span>1</span>
+              </li>
+              <li class="flex justify-between">
+                <span class="opacity-70">Status</span>
+                <span>INFO</span>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+      
+      <section class="sc-card rounded-2xl shadow p-4 mb-4 bg-white dark:bg-zinc-900"
+               data-plugin="secrets" data-status="INFO">
+        <header class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-semibold">Secrets</span>
+            <span class="sc-pill sc-pill--INFO">INFO</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <button class="underline" data-action="toggle">Collapse</button>
+          </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-4" data-body>
+          <div class="md:col-span-2 space-y-2">
+            
+            <article class="finding border rounded-xl p-3" data-severity="INFO">
+              <div class="flex items-center justify-between">
+                <strong class="text-sm">Secrets</strong>
+                <span class="sc-pill sc-pill--INFO">INFO</span>
+              </div>
+              <p class="text-sm mt-1 whitespace-pre-wrap">{&#39;title&#39;: &#39;Secrets&#39;, &#39;status&#39;: &#39;✅ OK&#39;, &#39;messages&#39;: [&#39;No high-risk hardcoded secrets detected in tracked paths.&#39;, &#39;Kubernetes secrets: 12 (10 used, 2 unused).&#39;]}</p>
+              
+            </article>
+            
+          </div>
+
+          <aside class="space-y-3">
+            <div class="h-40">
+              <canvas id="chart-secrets" height="160" class="rounded-xl border"></canvas>
+            </div>
+            <ul class="text-sm space-y-1">
+              <li class="flex justify-between">
+                <span class="opacity-70">Findings</span>
+                <span>1</span>
+              </li>
+              <li class="flex justify-between">
+                <span class="opacity-70">Status</span>
+                <span>INFO</span>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+      
+      <section class="sc-card rounded-2xl shadow p-4 mb-4 bg-white dark:bg-zinc-900"
+               data-plugin="cost" data-status="INFO">
+        <header class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-semibold">Cost</span>
+            <span class="sc-pill sc-pill--INFO">INFO</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <button class="underline" data-action="toggle">Collapse</button>
+          </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-4" data-body>
+          <div class="md:col-span-2 space-y-2">
+            
+            <article class="finding border rounded-xl p-3" data-severity="INFO">
+              <div class="flex items-center justify-between">
+                <strong class="text-sm">Cost</strong>
+                <span class="sc-pill sc-pill--INFO">INFO</span>
+              </div>
+              <p class="text-sm mt-1 whitespace-pre-wrap">{&#39;title&#39;: &#39;Cost&#39;, &#39;status&#39;: &#39;✅ OK&#39;, &#39;messages&#39;: [&#39;Monthly AWS cost (last 4 months): $120 → $150 → $90 → $170.&#39;], &#39;metadata&#39;: {&#39;monthly_cost_usd&#39;: [120, 150, 90, 170]}}</p>
+              
+            </article>
+            
+          </div>
+
+          <aside class="space-y-3">
+            <div class="h-40">
+              <canvas id="chart-cost" height="160" class="rounded-xl border"></canvas>
+            </div>
+            <ul class="text-sm space-y-1">
+              <li class="flex justify-between">
+                <span class="opacity-70">Findings</span>
+                <span>1</span>
+              </li>
+              <li class="flex justify-between">
+                <span class="opacity-70">Status</span>
+                <span>INFO</span>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+      
+      <section class="sc-card rounded-2xl shadow p-4 mb-4 bg-white dark:bg-zinc-900"
+               data-plugin="gitops" data-status="INFO">
+        <header class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-semibold">Gitops</span>
+            <span class="sc-pill sc-pill--INFO">INFO</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <button class="underline" data-action="toggle">Collapse</button>
+          </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-4" data-body>
+          <div class="md:col-span-2 space-y-2">
+            
+            <article class="finding border rounded-xl p-3" data-severity="INFO">
+              <div class="flex items-center justify-between">
+                <strong class="text-sm">Gitops</strong>
+                <span class="sc-pill sc-pill--INFO">INFO</span>
+              </div>
+              <p class="text-sm mt-1 whitespace-pre-wrap">{&#39;title&#39;: &#39;GitOps&#39;, &#39;status&#39;: &#39;✅ OK&#39;, &#39;messages&#39;: [&#39;ArgoCD apps in sync ✅  Self-heal: enabled.&#39;]}</p>
+              
+            </article>
+            
+          </div>
+
+          <aside class="space-y-3">
+            <div class="h-40">
+              <canvas id="chart-gitops" height="160" class="rounded-xl border"></canvas>
+            </div>
+            <ul class="text-sm space-y-1">
+              <li class="flex justify-between">
+                <span class="opacity-70">Findings</span>
+                <span>1</span>
+              </li>
+              <li class="flex justify-between">
+                <span class="opacity-70">Status</span>
+                <span>INFO</span>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+      
+    </section>
+  </div>
+
+  </main>
+
+  <footer class="sc-footer">
+    <div class="sc-container" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <div style="font-size:12px; opacity:.7;">
+        © 2025 SnapCheck — All systems, one snap.
+      </div>
+      <div style="display:flex; gap:12px; font-size:12px;">
+        
+          
+          <a href="#" style="color:#bdbdbd;">Docs</a>
+          <a href="#" style="color:#bdbdbd;">Changelog</a>
+          <a href="#" style="color:#bdbdbd;">Support</a>
+        
+      </div>
+    </div>
+  </footer>
+
+  
+  
+  <script>
+    window.SNAPCHECK_CHARTS = {"ci": {"datasets": [{"data": [22, 41, 19], "label": "Avg Duration (s)"}], "labels": ["Build", "Test", "Deploy"]}, "cost": {"datasets": [{"borderColor": "rgb(75, 192, 192)", "data": [120, 150, 90, 170], "fill": false, "label": "AWS Cost ($)", "tension": 0.1}], "labels": ["Jan", "Feb", "Mar", "Apr"]}};
+  </script>
+  
+  <script src="static/app.js"></script>
+
+</body>
+</html>

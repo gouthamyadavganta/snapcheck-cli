@@ -1,0 +1,58 @@
+name: demo
+aws_region: us-east-1
+secrets_source: env
+vault_addr: https://vault.example.com
+vault_token_env: VAULT_TOKEN
+env_secrets:
+  - AWS_ACCESS_KEY_ID
+  - AWS_SECRET_ACCESS_KEY
+  - GITHUB_TOKEN
+  - ARGOCD_TOKEN
+modules:
+  - terraform
+  - kubernetes
+  - helm
+  - ci_cd
+  - docker
+  - secrets
+  - cost
+  - gitops
+terraform_state: ./state.tfstate
+kubeconfig: ~/.kube/config
+helm_namespaces:
+  - default
+  - monitoring
+ci_platform: github
+github_repo: username/repo
+github_token: ${GITHUB_TOKEN}
+docker_images:
+  - name: username/image
+    tags:
+      - latest
+      - abc123
+gitops:
+  method: api
+  test_mode: true
+  argocd_server: https://argo.example.com
+  token: ${ARGOCD_TOKEN}
+  app_whitelist: []
+demo_mode: true
+
+security:
+  enabled: true                # gate the web UI behind login
+  auth_provider: github        # we’re starting with GitHub OAuth
+  allowed_emails: []           # optional allowlist; keep empty for any authenticated user
+  allowed_orgs: []             # optional: e.g., ["your-org"]
+  rbac:
+    "admin@yourco.com": admin  # exact match
+    "@yourco.com": engineer    # domain rule (anyone @yourco.com)
+    "*": viewer                # default fallback
+  watermark: "Confidential – SnapCheck"
+  share:
+    enabled: true
+    default_expiry_minutes: 1440  # i didnt update it
+  session:
+    cookie_name: snapcheck_session
+    max_age_seconds: 86400
+    same_site: lax
+    https_only: false

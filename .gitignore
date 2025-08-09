@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Env
+venv/
+.env
+*.env
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# SnapCheck local data
+.snapcheck/
+profiles/*.yaml
+!profiles/example*.yaml  # keep example profiles
+
+# System
+.DS_Store
+Thumbs.db
