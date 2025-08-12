@@ -1,11 +1,11 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "snapcheck-cli"                 # PyPI name (check availability)
-version = "1.0.0"
-description = "Unified DevOps/MLOps audit & correlation tool"
+name = "snapcheck-cli"
+version = "1.0.1"
+description = "SnapCheck — Unified DevOps/MLOps Audit & Correlation Engine"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
@@ -17,25 +17,41 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
+# ✅ Full runtime deps so pipx installs everything users need
 dependencies = [
   "click>=8.1,<9",
+  "PyYAML>=6,<7",
   "rich>=13,<14",
+  "Jinja2>=3.1,<4",
+  "tabulate>=0.9,<0.10",
+  "boto3>=1.34,<2",
+  "kubernetes>=29,<31",
+  "GitPython>=3.1,<4",
+  "requests>=2.31,<3",
+  "pydantic>=2.8,<3",
+  "python-dateutil>=2.8,<3",
   "fastapi>=0.111,<1",
   "uvicorn[standard]>=0.29,<1",
-  "jinja2>=3.1,<4",
+  "authlib>=1.3,<2",
+  "python-jose[cryptography]>=3.3,<4",
   "pyjwt>=2.8,<3",
-  "boto3>=1.34,<2",
-  "kubernetes>=29,<30",
-  "requests>=2.31,<3"
+  "openai>=1,<2"
 ]
 
 [project.scripts]
-snapcheck = "main:cli"   # <-- if your entry is main.cli(); change to main:main if needed
+# main.py stays at repo root; entry func is click group 'cli'
+snapcheck = "main:cli"
 
 [tool.setuptools]
 include-package-data = true
 
+# ✅ Tell setuptools to include your code folders as packages
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cli*", "core*", "plugins*", "utils*", "web*", "config*", "output*"]
+
+# ✅ Include templates/static shipped with the package
 [tool.setuptools.package-data]
-# Include templates/static living under these top-level packages
-output = ["templates/*.html", "templates/partials/*.html"]
-web = ["static/*", "static/**/*"]
+web = ["templates/**/*", "static/**/*"]
+output = ["templates/**/*"]
+
