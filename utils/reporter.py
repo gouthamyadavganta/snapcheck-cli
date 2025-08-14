@@ -28,6 +28,6 @@ class AuditResult:
 # ✅ Used by main.py to write each plugin's result for HTML rendering
 def save_audit_result_json(name, result: AuditResult):
     os.makedirs(".snapcheck", exist_ok=True)
-    path = os.path.join(".snapcheck", f"{name}.json")
+    path = os.path.join(".snapcheck", f"{name}_status.json")
     with open(path, "w") as f:
         json.dump(result.to_dict(), f, indent=2)

@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, Response, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from datetime import datetime
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple
@@ -232,6 +233,44 @@ def _debug():
 def healthz():
     return {"ok": True}
 
+def _ensure_local_index():
+    """
+    Best-effort: create .snapcheck/index.html that links report.html + report-*.html
+    without importing publisher (avoid hard deps on jinja/git in the web path).
+    """
+    outdir = Path(".snapcheck")
+    outdir.mkdir(parents=True, exist_ok=True)
+    idx = outdir / "index.html"
+    # Collect files
+    files = []
+    if (outdir / "report.html").exists():
+        files.append(outdir / "report.html")
+    files.extend(sorted(outdir.glob("report-*.html")))
+    if not files and idx.exists():
+        return  # nothing to link, but index exists
+    # Render simple index
+    def _mtime(p: Path) -> float:
+        try:
+            return p.stat().st_mtime
+        except Exception:
+            return 0.0
+    files = sorted(set(files), key=_mtime, reverse=True)
+    rows = []
+    for p in files:
+        ts = datetime.fromtimestamp(_mtime(p)).strftime("%Y-%m-%d %H:%M:%S") if _mtime(p) else ""
+        rows.append(f'<li><a href="{p.name}">{p.name}</a> <small>({ts})</small></li>')
+    if not rows:
+        rows = ['<li><em>No reports found yet.</em></li>']
+    html = f"""<!doctype html>
+<html><head><meta charset="utf-8"><title>SnapCheck Reports</title></head>
+<body>
+<h1>SnapCheck Reports</h1>
+<ul>
+{''.join(rows)}
+</ul>
+</body></html>"""
+    idx.write_text(html, encoding="utf-8")
+
 @app.on_event("startup")
 async def _print_boot():
     print("[SnapCheck] profile:", PROFILE_PATH, "| abs:", Path(PROFILE_PATH).resolve(), "| exists:", Path(PROFILE_PATH).exists())
@@ -242,7 +281,8 @@ async def _print_boot():
     print("[SnapCheck] client_id?", bool(OAUTH_CLIENT_ID))
     if not HAS_PROXY_MW:
         print("[SnapCheck] note: ProxyHeadersMiddleware not available; continuing without it")
-
+    # ensure we have an index to show
+    _ensure_local_index()
 # ------------------------------
 # OAuth routes
 # ------------------------------

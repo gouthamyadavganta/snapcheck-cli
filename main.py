@@ -37,7 +37,7 @@ from cli.init_profile import generate_profile
 from utils.sanitize import deep_mask  # 🔒 universal masking for terminal/markdown only
 
 # ── Constants
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 console = Console()
 
 # ── Module dispatch map
